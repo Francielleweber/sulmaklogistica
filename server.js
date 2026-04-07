@@ -8,10 +8,11 @@ app.use(express.json());
 app.use(express.static(__dirname));
 
 const db = mysql.createConnection({
-  host:     'localhost',
-  user:     'root',         // ← seu usuário do MySQL
-  password: 'root',    // ← sua senha do MySQL
-  database: 'demandas_db'
+  host: process.env.MYSQLHOST,
+  user: process.env.MYSQLUSER,
+  password: process.env.MYSQLPASSWORD,
+  database: process.env.MYSQLDATABASE,
+  port: process.env.MYSQLPORT
 });
 
 db.connect(err => {
