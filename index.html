@@ -235,7 +235,7 @@ header { background:#013025; padding:0 16px; display:flex; align-items:center; j
       <button class="btn-new" id="btn-nova-demanda" onclick="openModal(null)">+ Nova Demanda</button>
       <button class="btn-filial-switch" onclick="openFilialSwitcher()">🔄 Filial</button>
       <button class="btn-refresh" id="btn-refresh" onclick="manualRefresh()">
-        <span class="spin">↻</span> Atualizar <span id="auto-refresh-countdown" style="font-size:.7rem;opacity:.75;margin-left:2px;"></span>
+        <span id="auto-refresh-countdown" style="font-size:.7rem;opacity:.75;margin-left:2px;display:inline-block;min-width:26px;text-align:right;font-variant-numeric:tabular-nums;"></span>
       </button>
       <button class="btn-hist" onclick="showHistorico()">📋 Histórico</button>
       <div class="db-status offline" id="db-status-btn">
