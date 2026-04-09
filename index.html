@@ -484,13 +484,6 @@ header { background:#013025; padding:0 16px; display:flex; align-items:center; j
 // =============================================
 const API = 'https://sulmaklogistica-production.up.railway.app'; // URL do seu backend Node.js
 
-const creds = {
-  'Porto Alegre':       { user:'poa',        pass:'sulmak@poa' },
-  'São Leopoldo':       { user:'saoleo',     pass:'sulmak@saoleo' },
-  'Passo Fundo':        { user:'passofundo', pass:'sulmak@pf' },
-  'Mato Grosso do Sul': { user:'matogrosso', pass:'sulmak@ms' },
-  'admin':              { user:'admin',      pass:'admin123', isAdmin:true }
-};
 
 const FILIAIS = ['Porto Alegre','São Leopoldo','Passo Fundo','Mato Grosso do Sul'];
 const TIPOS   = ['entrega','substituicao','devolucao'];
@@ -678,24 +671,42 @@ function selFilial(f) {
   document.getElementById('fb-' + f).classList.add('selected');
 }
 
-function doLogin() {
-  var u = document.getElementById('l-user').value.trim();
-  var p = document.getElementById('l-pass').value;
+async function doLogin() {
+  var u   = document.getElementById('l-user').value.trim();
+  var p   = document.getElementById('l-pass').value;
   var err = document.getElementById('l-err');
 
-  if (u === creds['admin'].user && p === creds['admin'].pass) {
-    isAdmin = true; usuarioLogado = 'admin';
-    filialLogada = null; filialAtual = FILIAIS[0];
-    err.style.display = 'none'; entrarNoApp(); return;
+  if (!u || !p) {
+    err.style.display = 'block';
+    err.textContent = 'Preencha usuário e senha.';
+    return;
   }
-  if (!filialSel) { err.style.display='block'; err.textContent='Selecione uma filial.'; return; }
-  var c = creds[filialSel];
-  if (!c || u !== c.user || p !== c.pass) {
-    err.style.display='block'; err.textContent='Usuário ou senha inválidos.'; return;
+
+  try {
+    var res  = await fetch(API + '/login', {
+      method:  'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body:    JSON.stringify({ user: u, pass: p, filial: filialSel })
+    });
+    var data = await res.json();
+
+    if (!data.ok) {
+      err.style.display = 'block';
+      err.textContent   = data.erro || 'Usuário ou senha inválidos.';
+      return;
+    }
+
+    isAdmin       = data.isAdmin;
+    usuarioLogado = u;
+    filialLogada  = data.filial;
+    filialAtual   = data.filial || FILIAIS[0];
+    err.style.display = 'none';
+    entrarNoApp();
+
+  } catch (e) {
+    err.style.display = 'block';
+    err.textContent   = 'Erro de conexão com o servidor.';
   }
-  isAdmin = false; usuarioLogado = u;
-  filialLogada = filialSel; filialAtual = filialSel;
-  err.style.display = 'none'; entrarNoApp();
 }
 
 function entrarNoApp() {
