@@ -236,8 +236,7 @@ header { background:#013025; padding:0 16px; display:flex; align-items:center; j
       <button class="btn-filial-switch" onclick="openFilialSwitcher()">🔄 Filial</button>
       <button class="btn-refresh" id="btn-refresh" onclick="manualRefresh()">
         <span class="spin">↻</span> Atualizar 
-        <span id="auto-refresh-countdown" style="font-size:.7rem;opacity:.75;margin-left:2px;display:inline-block;min-width:26px;text-align:right;font-variant-numeric:tabular-nums;">          
-        </span>
+        <span id="auto-refresh-countdown" style="font-size:.7rem;opacity:.75;margin-left:2px;display:inline-block;min-width:26px;text-align:right;font-variant-numeric:tabular-nums;">
       </button>
       <button class="btn-hist" onclick="showHistorico()">📋 Histórico</button>
       <div class="db-status offline" id="db-status-btn">
@@ -521,7 +520,7 @@ let _autoRefreshTimer = null;
 // =============================================
 // VENDEDORES
 // =============================================
-const VENDEDORES_PADRAO = ['Aislan','Alisson','Daniel Raupp','Felipe','Flávio','Gabriel','Guilherme','Jordan','Leonardo','Marcelo','Murilo'];
+const VENDEDORES_PADRAO = ['Aislan','Alisson','Daniel Raupp','Flávio','Gabriel','Leonardo','Murilo'];
 let _vendedoresExtra = JSON.parse(localStorage.getItem('sulmak_vendedores_extra') || '[]');
 let VENDEDORES = [...new Set([...VENDEDORES_PADRAO, ..._vendedoresExtra])];
 
@@ -966,15 +965,30 @@ function mascararValor(input) {
 }
 
 function checkPatrimNovo(input) {
-  if (input.value.trim()) {
+  // Só muda a situação quando TODOS os produtos com nome preenchido tiverem Patrimônio Novo
+  var rows = document.querySelectorAll('.produto-item');
+  var anyNome = false, allHavePatrimNovo = true;
+  rows.forEach(r => {
+    var nome = r.querySelector('.p-nome') ? r.querySelector('.p-nome').value.trim() : '';
+    var patrimonioNovo = r.querySelector('.p-patrim-novo') ? r.querySelector('.p-patrim-novo').value.trim() : '';
+    if (nome) { anyNome = true; if (!patrimonioNovo) allHavePatrimNovo = false; }
+  });
+  if (anyNome && allHavePatrimNovo) {
     var sit = document.getElementById('f-situacao').value;
     if (sit === 'Troca (Ag. Patrimônio)') { document.getElementById('f-situacao').value='Ag. Termo de Substituição'; checkSituacaoAlert(); }
   }
 }
 function checkPatrimEntrega(input) {
-  if (input.value.trim()) {
-    if (document.getElementById('f-tipo').value === 'entrega') { document.getElementById('f-situacao').value='C/ Patrimônio'; checkSituacaoAlert(); }
-  }
+  if (document.getElementById('f-tipo').value !== 'entrega') return;
+  // Só muda a situação quando TODOS os produtos com nome preenchido tiverem patrimônio
+  var rows = document.querySelectorAll('.produto-item');
+  var anyNome = false, allHavePatrim = true;
+  rows.forEach(r => {
+    var nome = r.querySelector('.p-nome') ? r.querySelector('.p-nome').value.trim() : '';
+    var patrim = r.querySelector('.p-patrim') ? r.querySelector('.p-patrim').value.trim() : '';
+    if (nome) { anyNome = true; if (!patrim) allHavePatrim = false; }
+  });
+  if (anyNome && allHavePatrim) { document.getElementById('f-situacao').value='C/ Patrimônio'; checkSituacaoAlert(); }
 }
 
 function addProdRow(p, tipo) {
