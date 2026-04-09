@@ -26,6 +26,7 @@ app.post('/login', (req, res) => {
 
   const USERS = {
     'poa':        { pass: 'sulmak@poa',    filial: 'Porto Alegre',       isAdmin: false },
+    'Fran@sulmak':        { pass: 'Fran@!#',       filial: 'Porto Alegre',       isAdmin: false },
     'saoleo':     { pass: 'sulmak@saoleo', filial: 'São Leopoldo',       isAdmin: false },
     'passofundo': { pass: 'sulmak@pf',     filial: 'Passo Fundo',        isAdmin: false },
     'matogrosso': { pass: 'sulmak@ms',     filial: 'Mato Grosso do Sul', isAdmin: false },
