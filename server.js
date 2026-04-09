@@ -47,7 +47,7 @@ app.post('/login', (req, res) => {
 
 // GET — buscar todas as demandas
 app.get('/demandas', (req, res) => {
-  db.query('SELECT * FROM demandas ORDER BY id ASC', (err, results) => {
+  db.query('SELECT *, criado_por AS criadoPor FROM demandas ORDER BY id ASC', (err, results) => {
     if (err) return res.status(500).json({ erro: err });
     res.json(results);
   });
@@ -55,10 +55,10 @@ app.get('/demandas', (req, res) => {
 
 // POST — inserir nova demanda
 app.post('/demandas', (req, res) => {
-  const { filial, tipo, situacao, empresa, cliente, vendedor, endereco, contato, obs, data, hora, produtos } = req.body;
-  const sql = `INSERT INTO demandas (filial, tipo, situacao, empresa, cliente, vendedor, endereco, contato, obs, data, hora, produtos)
-               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
-  db.query(sql, [filial, tipo, situacao, empresa, cliente, vendedor, endereco, contato, obs, data, hora, produtos], (err, result) => {
+  const { filial, tipo, situacao, empresa, cliente, vendedor, endereco, contato, obs, data, hora, produtos, criadoPor } = req.body;
+  const sql = `INSERT INTO demandas (filial, tipo, situacao, empresa, cliente, vendedor, endereco, contato, obs, data, hora, produtos, criado_por)
+               VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`;
+  db.query(sql, [filial, tipo, situacao, empresa, cliente, vendedor, endereco, contato, obs, data, hora, produtos, criadoPor || null], (err, result) => {
     if (err) {
       console.error('Erro ao inserir:', err.message);
       return res.status(500).json({ erro: err });
