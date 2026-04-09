@@ -315,7 +315,7 @@ header { background:#013025; padding:0 16px; display:flex; align-items:center; j
   <div class="hist-body">
     <table class="hist-table" id="hist-table">
       <thead>
-        <tr><th>Pedido</th><th>Filial</th><th>Tipo</th><th>Cliente</th><th>Empresa</th><th>Vendedor</th><th>Endereço</th><th>Contato</th><th>Produtos</th><th>Obs</th><th>Situação</th><th>Data</th><th>Hora</th><th id="th-acoes" style="display:none;">Ações</th></tr>
+        <tr><th>Pedido</th><th>Filial</th><th>Tipo</th><th>Cliente</th><th>Empresa</th><th>Vendedor</th><th>Endereço</th><th>Contato</th><th>Produtos</th><th>Obs</th><th>Situação</th><th>Data</th><th>Hora</th><th>Incluído por</th><th id="th-acoes" style="display:none;">Ações</th></tr>
       </thead>
       <tbody id="hist-tbody"></tbody>
     </table>
@@ -361,7 +361,7 @@ header { background:#013025; padding:0 16px; display:flex; align-items:center; j
   <div class="rel-body">
     <table class="rel-table">
       <thead>
-        <tr><th>Pedido</th><th>Filial</th><th>Tipo</th><th>Empresa</th><th>Responsável</th><th>Vendedor</th><th>Endereço</th><th>Contato</th><th>Produtos</th><th>Obs</th><th>Situação</th><th>Data</th><th>Hora</th></tr>
+        <tr><th>Pedido</th><th>Filial</th><th>Tipo</th><th>Empresa</th><th>Responsável</th><th>Vendedor</th><th>Endereço</th><th>Contato</th><th>Produtos</th><th>Obs</th><th>Situação</th><th>Data</th><th>Hora</th><th>Incluído por</th></tr>
       </thead>
       <tbody id="rel-tbody"></tbody>
     </table>
@@ -589,6 +589,7 @@ function normalizarItem(item) {
   item.situacao = String(item.situacao || '');
   item.tipo     = String(item.tipo     || '');
   item.filial   = String(item.filial   || '');
+  item.criadoPor= String(item.criadoPor|| '');
   // data: pode vir como objeto Date do MySQL (ISO string) ou DD/MM/AAAA
   if (item.data) {
     var s = String(item.data);
@@ -786,20 +787,24 @@ async function saveDemanda() {
   var dataStr  = now.toLocaleDateString('pt-BR', {day:'2-digit',month:'2-digit',year:'numeric'});
   var horaStr  = now.toLocaleTimeString('pt-BR', {hour:'2-digit',minute:'2-digit'});
 
+  var nomeUsuario = usuarioLogado ? usuarioLogado.split('@')[0] : '';
   var demanda = {
-    filial:   unidade,
-    tipo:     tipo,
-    situacao: situacao,
-    empresa:  document.getElementById('f-empresa').value.trim(),
-    cliente:  cliente,
-    vendedor: vendedor,
-    endereco: document.getElementById('f-endereco').value.trim(),
-    contato:  document.getElementById('f-contato').value.trim(),
-    obs:      document.getElementById('f-obs').value.trim(),
-    data:     dataStr,
-    hora:     horaStr,
-    produtos: JSON.stringify(getProdutos())
+    filial:    unidade,
+    tipo:      tipo,
+    situacao:  situacao,
+    empresa:   document.getElementById('f-empresa').value.trim(),
+    cliente:   cliente,
+    vendedor:  vendedor,
+    endereco:  document.getElementById('f-endereco').value.trim(),
+    contato:   document.getElementById('f-contato').value.trim(),
+    obs:       document.getElementById('f-obs').value.trim(),
+    data:      dataStr,
+    hora:      horaStr,
+    produtos:  JSON.stringify(getProdutos())
   };
+  if (!editandoId) {
+    demanda.criadoPor = nomeUsuario;
+  }
 
   try {
     if (editandoId) {
@@ -1094,7 +1099,7 @@ function renderHistorico() {
     }).join('<br>');
     var acaoCell = isAdmin ? `<td><button onclick="excluirHistorico('${h.id}')" style="background:transparent;border:none;color:#e53935;cursor:pointer;font-size:.9rem;">🗑️</button></td>` : '<td style="display:none;"></td>';
     var tr = document.createElement('tr');
-    tr.innerHTML = `<td><strong>${h.id}</strong></td><td>${h.filial}</td><td>${tipoLabel[h.tipo]||h.tipo}</td><td>${h.empresa||''}</td><td>${h.cliente||''}</td><td>${h.vendedor||''}</td><td>${h.endereco||''}</td><td>${h.contato||''}</td><td style="font-size:.75rem;line-height:1.5;">${prodStr}</td><td style="font-size:.75rem;">${h.obs||''}</td><td><span class="badge" style="background:${sitColor};color:#fff;">${h.situacao}</span></td><td>${h.data||''}</td><td>${h.hora||''}</td>${acaoCell}`;
+    tr.innerHTML = `<td><strong>${h.id}</strong></td><td>${h.filial}</td><td>${tipoLabel[h.tipo]||h.tipo}</td><td>${h.empresa||''}</td><td>${h.cliente||''}</td><td>${h.vendedor||''}</td><td>${h.endereco||''}</td><td>${h.contato||''}</td><td style="font-size:.75rem;line-height:1.5;">${prodStr}</td><td style="font-size:.75rem;">${h.obs||''}</td><td><span class="badge" style="background:${sitColor};color:#fff;">${h.situacao}</span></td><td>${h.data||''}</td><td>${h.hora||''}</td><td style="font-size:.75rem;color:#888;">${h.criadoPor||'—'}</td>${acaoCell}`;
     tbody.appendChild(tr);
   });
 }
@@ -1152,7 +1157,7 @@ function renderRelatorio() {
       return parts.join(' | ');
     }).join('<br>');
     var tr = document.createElement('tr');
-    tr.innerHTML=`<td><strong>${h.id}</strong></td><td>${h.filial}</td><td>${tipoLabel[h.tipo]||h.tipo}</td><td>${h.empresa||'—'}</td><td>${h.cliente||'—'}</td><td>${h.vendedor||'—'}</td><td>${h.endereco||'—'}</td><td>${h.contato||'—'}</td><td style="font-size:.75rem;line-height:1.5;">${prodStr}</td><td style="font-size:.75rem;">${h.obs||''}</td><td><span class="badge" style="background:${sitColor};color:#fff;font-size:.7rem;padding:3px 8px;">${h.situacao}</span></td><td>${h.data||''}</td><td>${h.hora||''}</td>`;
+    tr.innerHTML=`<td><strong>${h.id}</strong></td><td>${h.filial}</td><td>${tipoLabel[h.tipo]||h.tipo}</td><td>${h.empresa||'—'}</td><td>${h.cliente||'—'}</td><td>${h.vendedor||'—'}</td><td>${h.endereco||'—'}</td><td>${h.contato||'—'}</td><td style="font-size:.75rem;line-height:1.5;">${prodStr}</td><td style="font-size:.75rem;">${h.obs||''}</td><td><span class="badge" style="background:${sitColor};color:#fff;font-size:.7rem;padding:3px 8px;">${h.situacao}</span></td><td>${h.data||''}</td><td>${h.hora||''}</td><td style="font-size:.75rem;">${h.criadoPor||'—'}</td>`;
     tbody.appendChild(tr);
   });
 }
@@ -1211,8 +1216,9 @@ function buildCard(item, filial, tipo) {
     +(item.empresa?`<div class="card-info"><b>Resp:</b> ${item.cliente}</div>`:'')
     +obsHTML+prodHTML
     +`<div class="card-footer">`
-    +`<button class="btn-sit-change" onclick="openSitModal('${filial}','${tipo}','${item.id}')">🔄 Situação</button>`
+    +(item.criadoPor?`<span style="font-size:.63rem;color:#bbb;font-style:italic;">por ${item.criadoPor}</span>`:`<span></span>`)
     +`<div style="display:flex;gap:4px;align-items:center;">`
+    +`<button class="btn-sit-change" onclick="openSitModal('${filial}','${tipo}','${item.id}')">🔄 Situação</button>`
     +`<button class="btn-editar" onclick="openEditModal('${filial}','${tipo}','${item.id}')">✏️ Editar</button>`
     +excluirBtn+`</div></div>`;
   return div;
