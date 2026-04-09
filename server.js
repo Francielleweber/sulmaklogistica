@@ -20,6 +20,31 @@ db.connect(err => {
   console.log('✅ MySQL conectado!');
 });
 
+// POST — login
+app.post('/login', (req, res) => {
+  const { user, pass, filial } = req.body;
+
+  const USERS = {
+    'poa':        { pass: 'sulmak@poa',    filial: 'Porto Alegre',       isAdmin: false },
+    'saoleo':     { pass: 'sulmak@saoleo', filial: 'São Leopoldo',       isAdmin: false },
+    'passofundo': { pass: 'sulmak@pf',     filial: 'Passo Fundo',        isAdmin: false },
+    'matogrosso': { pass: 'sulmak@ms',     filial: 'Mato Grosso do Sul', isAdmin: false },
+    'admin':      { pass: 'admin123',      filial: null,                  isAdmin: true  },
+  };
+
+  const found = USERS[user];
+  if (!found || found.pass !== pass) {
+    return res.status(401).json({ ok: false, erro: 'Usuário ou senha inválidos.' });
+  }
+
+  // Usuário comum deve logar na filial correta
+  if (!found.isAdmin && found.filial !== filial) {
+    return res.status(401).json({ ok: false, erro: 'Usuário não pertence a essa filial.' });
+  }
+
+  res.json({ ok: true, filial: found.filial, isAdmin: found.isAdmin });
+});
+
 // GET — buscar todas as demandas
 app.get('/demandas', (req, res) => {
   db.query('SELECT * FROM demandas ORDER BY id ASC', (err, results) => {
