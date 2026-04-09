@@ -235,8 +235,7 @@ header { background:#013025; padding:0 16px; display:flex; align-items:center; j
       <button class="btn-new" id="btn-nova-demanda" onclick="openModal(null)">+ Nova Demanda</button>
       <button class="btn-filial-switch" onclick="openFilialSwitcher()">🔄 Filial</button>
       <button class="btn-refresh" id="btn-refresh" onclick="manualRefresh()">
-        <span class="spin">↻</span> Atualizar 
-        <span id="auto-refresh-countdown" style="font-size:.7rem;opacity:.75;margin-left:2px;display:inline-block;min-width:26px;text-align:right;font-variant-numeric:tabular-nums;">
+        <span class="spin">↻</span> Atualizar
       </button>
       <button class="btn-hist" onclick="showHistorico()">📋 Histórico</button>
       <div class="db-status offline" id="db-status-btn">
@@ -726,25 +725,13 @@ function doLogout() {
 // =============================================
 function iniciarAutoRefresh() {
   pararAutoRefresh();
-  var restante = 30;
-  var el = document.getElementById('auto-refresh-countdown');
-  if (el) el.textContent = '(' + restante + 's)';
-  var countdown = setInterval(() => {
-    restante--;
-    if (restante < 0) restante = 30;
-    if (el) el.textContent = '(' + restante + 's)';
-  }, 1000);
   _autoRefreshTimer = setInterval(() => {
-    restante = 30;
     carregarDados();
   }, 30000);
-  _autoRefreshTimer._countdown = countdown;
 }
 function pararAutoRefresh() {
-  if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); if (_autoRefreshTimer._countdown) clearInterval(_autoRefreshTimer._countdown); }
+  if (_autoRefreshTimer) { clearInterval(_autoRefreshTimer); }
   _autoRefreshTimer = null;
-  var el = document.getElementById('auto-refresh-countdown');
-  if (el) el.textContent = '';
 }
 
 async function manualRefresh() {
