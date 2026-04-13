@@ -7,12 +7,15 @@ app.use(cors());
 app.use(express.json());
 app.use(express.static(__dirname));
 
-const db = mysql.createConnection({
-  host:     process.env.MYSQLHOST     || 'localhost',
-  user:     process.env.MYSQLUSER     || 'root',
-  password: process.env.MYSQLPASSWORD || 'root',
-  database: process.env.MYSQLDATABASE || 'demandas_db',
-  port:     process.env.MYSQLPORT     || 3306
+const db = mysql.createPool({
+  host:              process.env.MYSQLHOST,
+  user:              process.env.MYSQLUSER,
+  password:          process.env.MYSQLPASSWORD,
+  database:          process.env.MYSQLDATABASE,
+  port:              process.env.MYSQLPORT || 3306,
+  waitForConnections: true,
+  connectionLimit:   10,
+  queueLimit:        0
 });
 
 db.connect(err => {
