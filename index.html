@@ -1242,7 +1242,7 @@ function renderBoard() {
     document.getElementById('cnt-'+tipo).textContent = ativas.length;
     col.innerHTML = '';
     if (!ativas.length) { col.innerHTML='<div class="empty-msg">Nenhum lançamento.</div>'; return; }
-    ativas.slice().reverse().forEach(item => col.appendChild(buildCard(item, filialAtual, tipo)));
+    ativas.slice().sort((a,b) => b.id.localeCompare(a.id)).forEach(item => col.appendChild(buildCard(item, filialAtual, tipo)));
   });
 }
 </script>
