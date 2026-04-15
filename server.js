@@ -41,7 +41,7 @@ app.post('/login', (req, res) => {
     'Mateus@sulmak':        { pass: 'm4005',    filial: 'Porto Alegre',       isAdmin: false },
     'Lucas@sulmak':        { pass: 'l0091',    filial: 'Porto Alegre',       isAdmin: false },
     'Nicolas@sulmak':        { pass: 'n6079',    filial: 'Porto Alegre',       isAdmin: false },
-    'Guilherme@sulmak':        { pass: 'j8042',    filial: 'Porto Alegre',       isAdmin: false },
+    'Guilherme@sulmak':        { pass: 'g8042',    filial: 'Porto Alegre',       isAdmin: false },
     'saoleo':     { pass: 'sulmak@saoleo', filial: 'São Leopoldo',       isAdmin: false },
     'Flavio@sulmak':     { pass: 'f3086', filial: 'São Leopoldo',       isAdmin: false },
     'Alisson@sulmak':     { pass: 'a2052', filial: 'São Leopoldo',       isAdmin: false },
