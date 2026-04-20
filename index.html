@@ -999,7 +999,7 @@ function addProdRow(p, tipo) {
   var pl = document.getElementById('produto-list');
   var d  = document.createElement('div');
   d.className = 'produto-item';
-  var periodos = ['Diária','7 Dias','15 Dias','30 Dias','Medição Mensal','Anual'];
+  var periodos = ['Diária','7 Dias','15 Dias','30 Dias','Medição Mensal'];
   var perOpts = periodos.map(o => `<option value="${o}"${p&&p.periodo===o?' selected':''}>${o}</option>`).join('');
   var row2style, patrimFields;
   if (tipo === 'substituicao') {
