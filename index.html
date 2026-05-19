@@ -184,6 +184,8 @@ header { background:#013025; padding:0 16px; display:flex; align-items:center; j
 
 .btn-sit-change { background:transparent; border:1px solid #1a7a3c; color:#1a7a3c; border-radius:4px; font-size:.75rem; font-weight:700; cursor:pointer; padding:3px 8px; display:flex; align-items:center; gap:3px; }
 .btn-sit-change:hover { background:#e8f5e9; }
+.patrim-ts-label { font-size:.68rem; color:#888; font-style:italic; margin-top:2px; display:block; }
+.patrim-ts-card  { font-size:.65rem; color:#aaa; font-style:italic; }
 .col-filter { padding:6px 8px; background:#dde0e4; border-bottom:1px solid #bbb; flex-shrink:0; }
 .col-filter select { width:100%; border:1px solid #bbb; border-radius:4px; padding:5px 7px; font-size:.76rem; font-family:'Calibri','Trebuchet MS','Gill Sans',sans-serif; outline:none; background:#fff; cursor:pointer; }
 ::-webkit-scrollbar-thumb { background:#ccc; border-radius:3px; }
@@ -983,7 +985,6 @@ function checkPatrimNovo(input) {
 }
 function checkPatrimEntrega(input) {
   if (document.getElementById('f-tipo').value !== 'entrega') return;
-  // Só muda a situação quando TODOS os produtos com nome preenchido tiverem patrimônio
   var rows = document.querySelectorAll('.produto-item');
   var anyNome = false, allHavePatrim = true;
   rows.forEach(r => {
@@ -992,6 +993,25 @@ function checkPatrimEntrega(input) {
     if (nome) { anyNome = true; if (!patrim) allHavePatrim = false; }
   });
   if (anyNome && allHavePatrim) { document.getElementById('f-situacao').value='C/ Patrimônio'; checkSituacaoAlert(); }
+}
+function registrarTsPatrim(input, tsClass) {
+  var row = input.closest('.produto-item');
+  if (!row) return;
+  var tsInput = row.querySelector('.' + tsClass);
+  var tsLabel = input.parentElement.querySelector('.patrim-ts-label');
+  if (!tsInput) return;
+  if (input.value.trim()) {
+    if (!tsInput.value) {
+      var now = new Date();
+      var ts = now.toLocaleDateString('pt-BR',{day:'2-digit',month:'2-digit',year:'numeric'})
+               + ' ' + now.toLocaleTimeString('pt-BR',{hour:'2-digit',minute:'2-digit'});
+      tsInput.value = ts;
+      if (tsLabel) { tsLabel.textContent = '🕐 ' + ts; tsLabel.style.display = ''; }
+    }
+  } else {
+    tsInput.value = '';
+    if (tsLabel) { tsLabel.textContent = ''; tsLabel.style.display = 'none'; }
+  }
 }
 
 function addProdRow(p, tipo) {
@@ -1004,11 +1024,28 @@ function addProdRow(p, tipo) {
   var row2style, patrimFields;
   if (tipo === 'substituicao') {
     row2style = 'grid-template-columns:1fr 1fr 1fr auto';
-    patrimFields = `<div class="fg"><label>Patrimônio Retorna</label><input type="text" class="p-patrim-retorna" placeholder="Nº" value="${p&&p.patrimonioRetorna?p.patrimonioRetorna:''}"/></div>`
-      +`<div class="fg"><label>Patrimônio Novo</label><input type="text" class="p-patrim-novo" placeholder="Nº" oninput="checkPatrimNovo(this)" value="${p&&p.patrimonioNovo?p.patrimonioNovo:''}"/></div>`;
+    var tsRetorna = p&&p.tsPatrimonioRetorna ? p.tsPatrimonioRetorna : '';
+    var tsNovo    = p&&p.tsPatrimonioNovo    ? p.tsPatrimonioNovo    : '';
+    patrimFields =
+      `<div class="fg"><label>Patrimônio Retorna</label>`
+      +`<input type="text" class="p-patrim-retorna" placeholder="Nº" oninput="registrarTsPatrim(this,'p-ts-patrim-retorna')" value="${p&&p.patrimonioRetorna?p.patrimonioRetorna:''}"/>`
+      +`<input type="hidden" class="p-ts-patrim-retorna" value="${tsRetorna}"/>`
+      +(tsRetorna?`<span class="patrim-ts-label">🕐 ${tsRetorna}</span>`:`<span class="patrim-ts-label" style="display:none"></span>`)
+      +`</div>`
+      +`<div class="fg"><label>Patrimônio Novo</label>`
+      +`<input type="text" class="p-patrim-novo" placeholder="Nº" oninput="checkPatrimNovo(this);registrarTsPatrim(this,'p-ts-patrim-novo')" value="${p&&p.patrimonioNovo?p.patrimonioNovo:''}"/>`
+      +`<input type="hidden" class="p-ts-patrim-novo" value="${tsNovo}"/>`
+      +(tsNovo?`<span class="patrim-ts-label">🕐 ${tsNovo}</span>`:`<span class="patrim-ts-label" style="display:none"></span>`)
+      +`</div>`;
   } else {
     row2style = 'grid-template-columns:1fr 1fr auto';
-    patrimFields = `<div class="fg"><label>Patrimônio</label><input type="text" class="p-patrim" placeholder="Nº" oninput="checkPatrimEntrega(this)" value="${p&&p.patrimonio?p.patrimonio:''}"/></div>`;
+    var tsPatrim = p&&p.tsPatrimonio ? p.tsPatrimonio : '';
+    patrimFields =
+      `<div class="fg"><label>Patrimônio</label>`
+      +`<input type="text" class="p-patrim" placeholder="Nº" oninput="checkPatrimEntrega(this);registrarTsPatrim(this,'p-ts-patrim')" value="${p&&p.patrimonio?p.patrimonio:''}"/>`
+      +`<input type="hidden" class="p-ts-patrim" value="${tsPatrim}"/>`
+      +(tsPatrim?`<span class="patrim-ts-label">🕐 ${tsPatrim}</span>`:`<span class="patrim-ts-label" style="display:none"></span>`)
+      +`</div>`;
   }
   d.innerHTML = `<div class="fg"><label>Nome</label><input type="text" class="p-nome" placeholder="Nome do produto" value="${p&&p.nome?p.nome:''}"/></div>`
     +`<div class="fg"><label>Período</label><select class="p-periodo" style="font-family:inherit">${perOpts}</select></div>`
@@ -1024,10 +1061,13 @@ function getProdutos() {
   return Array.from(document.querySelectorAll('.produto-item')).map(r => {
     var prod = { nome:r.querySelector('.p-nome').value.trim(), periodo:r.querySelector('.p-periodo').value.trim(), valor:r.querySelector('.p-valor').value.trim() };
     if (tipo === 'substituicao') {
-      prod.patrimonioRetorna = r.querySelector('.p-patrim-retorna') ? r.querySelector('.p-patrim-retorna').value.trim() : '';
-      prod.patrimonioNovo    = r.querySelector('.p-patrim-novo')    ? r.querySelector('.p-patrim-novo').value.trim()    : '';
+      prod.patrimonioRetorna    = r.querySelector('.p-patrim-retorna')    ? r.querySelector('.p-patrim-retorna').value.trim()    : '';
+      prod.patrimonioNovo       = r.querySelector('.p-patrim-novo')       ? r.querySelector('.p-patrim-novo').value.trim()       : '';
+      prod.tsPatrimonioRetorna  = r.querySelector('.p-ts-patrim-retorna') ? r.querySelector('.p-ts-patrim-retorna').value.trim() : '';
+      prod.tsPatrimonioNovo     = r.querySelector('.p-ts-patrim-novo')    ? r.querySelector('.p-ts-patrim-novo').value.trim()    : '';
     } else {
-      prod.patrimonio = r.querySelector('.p-patrim') ? r.querySelector('.p-patrim').value.trim() : '';
+      prod.patrimonio   = r.querySelector('.p-patrim')    ? r.querySelector('.p-patrim').value.trim()    : '';
+      prod.tsPatrimonio = r.querySelector('.p-ts-patrim') ? r.querySelector('.p-ts-patrim').value.trim() : '';
     }
     return prod;
   }).filter(p => p.nome);
@@ -1093,8 +1133,10 @@ function renderHistorico() {
       var parts=[p.nome];
       if(p.periodo)parts.push(p.periodo);
       if(p.valor)parts.push('R$ '+p.valor);
-      if(h.tipo==='substituicao'){if(p.patrimonioRetorna)parts.push('Ret:'+p.patrimonioRetorna);if(p.patrimonioNovo)parts.push('Novo:'+p.patrimonioNovo);}
-      else{if(p.patrimonio)parts.push('Pat:'+p.patrimonio);}
+      if(h.tipo==='substituicao'){
+        if(p.patrimonioRetorna)parts.push('Ret:'+p.patrimonioRetorna+(p.tsPatrimonioRetorna?' ('+p.tsPatrimonioRetorna+')':''));
+        if(p.patrimonioNovo)   parts.push('Novo:'+p.patrimonioNovo+(p.tsPatrimonioNovo?' ('+p.tsPatrimonioNovo+')':''));
+      } else { if(p.patrimonio)parts.push('Pat:'+p.patrimonio+(p.tsPatrimonio?' ('+p.tsPatrimonio+')':'')); }
       return parts.join(' | ');
     }).join('<br>');
     var acaoCell = isAdmin ? `<td><button onclick="excluirHistorico('${h.id}')" style="background:transparent;border:none;color:#e53935;cursor:pointer;font-size:.9rem;">🗑️</button></td>` : '<td style="display:none;"></td>';
@@ -1152,8 +1194,10 @@ function renderRelatorio() {
     var prodStr = (h.produtos||[]).map(p=>{
       var parts=[p.nome];
       if(p.periodo)parts.push(p.periodo);if(p.valor)parts.push('R$ '+p.valor);
-      if(h.tipo==='substituicao'){if(p.patrimonioRetorna)parts.push('Ret:'+p.patrimonioRetorna);if(p.patrimonioNovo)parts.push('Novo:'+p.patrimonioNovo);}
-      else{if(p.patrimonio)parts.push('Pat:'+p.patrimonio);}
+      if(h.tipo==='substituicao'){
+        if(p.patrimonioRetorna)parts.push('Ret:'+p.patrimonioRetorna+(p.tsPatrimonioRetorna?' ('+p.tsPatrimonioRetorna+')':''));
+        if(p.patrimonioNovo)   parts.push('Novo:'+p.patrimonioNovo+(p.tsPatrimonioNovo?' ('+p.tsPatrimonioNovo+')':''));
+      } else { if(p.patrimonio)parts.push('Pat:'+p.patrimonio+(p.tsPatrimonio?' ('+p.tsPatrimonio+')':'')); }
       return parts.join(' | ');
     }).join('<br>');
     var tr = document.createElement('tr');
@@ -1188,8 +1232,9 @@ function buildCard(item, filial, tipo) {
     prodHTML = '<div class="card-produtos">';
     item.produtos.forEach(p => {
       var pat = tipo==='substituicao'
-        ? (p.patrimonioRetorna?' | Ret: '+p.patrimonioRetorna:'')+(p.patrimonioNovo?' | Novo: '+p.patrimonioNovo:'')
-        : (p.patrimonio?' | '+p.patrimonio:'');
+        ? (p.patrimonioRetorna?' | Ret: '+p.patrimonioRetorna+(p.tsPatrimonioRetorna?' <span class="patrim-ts-card">'+p.tsPatrimonioRetorna+'</span>':''):'')
+          +(p.patrimonioNovo?' | Novo: '+p.patrimonioNovo+(p.tsPatrimonioNovo?' <span class="patrim-ts-card">'+p.tsPatrimonioNovo+'</span>':''):'')
+        : (p.patrimonio?' | '+p.patrimonio+(p.tsPatrimonio?' <span class="patrim-ts-card">'+p.tsPatrimonio+'</span>':''):'');
       prodHTML += `<div class="card-prod-row">${p.nome}${p.periodo?' | '+p.periodo:''}${p.valor?' | R$ '+p.valor:''}${pat}</div>`;
     });
     prodHTML += '</div>';
