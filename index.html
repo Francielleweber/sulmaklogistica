@@ -998,7 +998,8 @@ function registrarTsPatrim(input, tsClass) {
   var row = input.closest('.produto-item');
   if (!row) return;
   var tsInput = row.querySelector('.' + tsClass);
-  var tsLabel = input.parentElement.querySelector('.patrim-ts-label');
+  var fg = input.closest('.fg');
+  var tsLabel = fg ? fg.querySelector('.patrim-ts-label') : null;
   if (!tsInput) return;
   if (input.value.trim()) {
     if (!tsInput.value) {
